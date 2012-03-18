@@ -1,0 +1,149 @@
+<!--
+	Hello all, the following code only reads an RSS feed from published Google docs using Javascript and Google's Feed API.
+    
+	Google Feed API: http://code.google.com/apis/feed/    
+    
+    License: Feel free to change, share and use the source code in your applications.
+    
+    @author: Jaydeep.
+    @date: Oct 2 2011.
+    @Blog: The4thDimension.net
+    @SourceCode: http://code.google.com/p/google-docs-as-database-in-cloud/downloads/list
+    @Info: http://www.the4thdimension.net/2011/10/using-google-docs-as-database-in-cloud.html
+-->
+
+<DOCTYPE HTML>
+<html>
+<head>
+<title>Google Docs as database in the Cloud.</title>
+    
+    <!--include Google JS APIs-->
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script>
+
+/* 
+ This url is currently hosted by me on google docs.
+ If you want to use your own google docs as Database.
+ Create a spreadsheet database. 
+ Publish it and then use the Rss url of it here.
+ */
+var DatabaseRssUrl = "https://spreadsheets.google.com/feeds/list/0Arwn-7rAFTkMdDh3NXVzb2hZM0NLeWYtVVZud293M2c/od6/public/basic?hl=en_US&alt=rss";
+
+
+/*Constants*/
+var COL_2 = 0;
+var COL_3 = 1;
+
+
+/*Actually reads the data from the specified published spreadsheet*/
+function getFeed()
+{
+	var feed = new google.feeds.Feed(DatabaseRssUrl);
+	feed.includeHistoricalEntries();			// tell the API we want to have old entries too
+	feed.setNumEntries(200);					//we want a maximum of 99 entries, if they exist
+	feed.load(displayFeed);
+}
+
+
+/*Does nothing big, but removes any white spaces in the argument string.*/
+function trimAllSpaces(sString) 
+{
+	 while (sString.substring(0,1) == ' ')
+		{
+			sString = sString.substring(1, sString.length);
+		}
+	
+   	 while (sString.substring(sString.length-1, sString.length) == ' ')
+		{
+			sString = sString.substring(0,sString.length-1);
+		}
+	
+	return sString;
+}
+
+/*creates & returns a JSON object out of the string provided as argument.*/
+function JSONify(ContentArray,OBJECT_INDEX){
+	
+	DESC_INDEX = 0;
+	VALUE_INDEX = 1;
+	
+	var JSONString  = '{' + '"' + trimAllSpaces(ContentArray[OBJECT_INDEX].split(":")[DESC_INDEX]) + '"' + ':';
+		JSONString += '"' + trimAllSpaces(ContentArray[OBJECT_INDEX].split(":")[VALUE_INDEX])+ '"' + '}';	
+
+		return JSON.parse(JSONString);
+}
+
+function displayFeed(result)
+{	
+		var col1Data, col2Data, col3Data;
+			
+		if (!result.error) {    
+		var length=result.feed.entries.length;
+
+		var DBTable = document.getElementById('Database');
+		
+		for (var i = 0; i < length; i++) {
+			var DataBaseRow = result.feed.entries[i];
+			
+//			if(i==1)
+//			break;
+			
+			ContentArray = DataBaseRow.content.split(",");
+
+			//convert the received string into JSON Object.
+			col2JSONObj	= JSONify(ContentArray,COL_2);
+			col3JSONObj	= JSONify(ContentArray,1);
+
+			// data from each cell is received here.
+			col1Data = DataBaseRow.title;			
+			col2Data = col2JSONObj.col2;
+			col3Data = col3JSONObj.col3;			
+			
+			/*
+			  At this point the database has been read. You can uncomment the following lines to watch the
+			 output in the Chrome Dev. Tools or Firebug console.
+			 */
+//			console.log('col1Data ' + col1Data);
+//			console.log('col2Data ' + col2Data);
+//			console.log('col3Data ' + col3Data);
+			
+			//Some HTML programming in Javasctipt. Many JS programmers might be familier with this.
+			var row = document.createElement('tr');		//creates <tr> tag
+			var cell1 = document.createElement('td');	//creates <td> tag
+			var cell2 = document.createElement('td');	//creates <td> tag
+			var cell3 = document.createElement('td');	//creates <td> tag
+			
+			cell1.appendChild(document.createTextNode(col1Data));
+			cell2.appendChild(document.createTextNode(col2Data));
+			cell3.appendChild(document.createTextNode(col3Data));
+			row.appendChild(cell1);
+			row.appendChild(cell2);
+			row.appendChild(cell3);
+			
+			// add the data to the TABLE tag in HTML below to display it on the web page.
+			DBTable.appendChild(row);
+		}
+		
+    }
+}
+
+
+</script>
+	
+
+</head>
+<body id="Body">
+               
+               <Table id="Database" border="1" style="margin:5px;" cellpadding="5px">
+               </Table>
+               
+           
+           <script>
+			//Used to load the Google Feeds API.
+				google.load("feeds", "1");
+				google.setOnLoadCallback(getFeed);
+		   </script> 
+
+ 
+</body>
+</html>
