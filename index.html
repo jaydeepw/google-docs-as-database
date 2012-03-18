@@ -35,7 +35,8 @@ var COL_2 = 0;
 var COL_3 = 1;
 
 
-/*Actually reads the data from the specified published spreadsheet*/
+/*This is a Google Feeds API that actually reads the
+data from the specified published spreadsheet*/
 function getFeed()
 {
 	var feed = new google.feeds.Feed(DatabaseRssUrl);
@@ -45,7 +46,8 @@ function getFeed()
 }
 
 
-/*Does nothing big, but removes any white spaces in the argument string.*/
+/*Does nothing big, but removes any white spaces in the
+argument string.*/
 function trimAllSpaces(sString) 
 {
 	 while (sString.substring(0,1) == ' ')
